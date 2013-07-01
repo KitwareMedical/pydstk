@@ -1,0 +1,4 @@
+pyds
+====
+
+Python Dynamical Systems
