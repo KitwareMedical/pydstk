@@ -130,9 +130,6 @@ def main(argv=None):
             with open(opt.oFile, 'w') as fid:
                 pickle.dump(kdt, fid)
 
-        print kdt._Vhat
-
-
     except ErrorDS as e:
         dsinfo.fail(e)
         return -1

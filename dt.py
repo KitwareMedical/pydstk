@@ -114,7 +114,7 @@ def main(argv=None):
             msg.fail("Unsupported file type : %s", opt.iType)    
             return -1
     except Exception as e:
-        msg.fail(e)
+        dsinfo.fail(e)
         return -1
 
     try:
@@ -149,7 +149,7 @@ def main(argv=None):
      
     # catch pyds exceptions
     except ErrorDS as e:
-        msg.fail(e)
+        dsinfo.fail(e)
         return -1
             
 if __name__ == '__main__':

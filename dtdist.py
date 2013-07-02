@@ -64,6 +64,7 @@ OPTIONS (Overview):
 
     -s ARG -- DT1 model file
     -r ARG -- DT2 model file
+    -n ARG -- Iterations
         
 AUTHOR: Roland Kwitt, Kitware Inc., 2013
         roland.kwitt@kitware.com
