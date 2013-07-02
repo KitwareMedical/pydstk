@@ -1,7 +1,8 @@
 pydstk
 ======
 
-Python (Linear / Non-Linear) Dynamical Systems Toolkit (pydstk). This package implements two dynamical system variants that are commonly used in computer vision: **Dynamic Textures** (i.e., linear DS) and **Kernel Dynamic Textures** (i.e., non-linear DS). In addition, several approaches to measure the similarity
+Python (Linear / Non-Linear) Dynamical Systems Toolkit (pydstk). 
+This package implements two dynamical system variants that are commonly used in computer vision: **Dynamic Textures** (i.e., linear DS) and **Kernel Dynamic Textures** (i.e., non-linear DS). In addition, several approaches to measure the similarity
 between dynamical systems are implemented. 
 
 Requirements
@@ -12,7 +13,7 @@ Requirements
 3. [**OpenCV**](http://opencv.willowgarage.com/wiki/) (Python wrapping, tested with v2.4.5)
 4. [**SimpleITK**](http://www.simpleitk.org) (Python wrapping)
 
-To test if those packages are available on your system, try
+To check if those packages are available on your system, try
 ```python
 import cv2
 import scipy
