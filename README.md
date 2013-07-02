@@ -64,100 +64,68 @@ Similarity measurement between two linear dynamical systems by means of subspace
 
 Supported I/O File Formats
 --------------------------
-tbd.
+The package `dsutil` contains a set of I/O routines to load data from harddisk (tbd.)
 
 
-Example Applications
---------------------
+Some example applications
+-------------------------
 
-pydstk implements a set of example applications that can be useful for starting to work
-with dynamical system models. These example applications include command-line tools to 
-estimate dynamic texture and non-linear dynamic texture models from videos represented 
-as AVI files, ASCII files or a set of frames. These applications are named `dt.py` and 
-`kdt.py`. Calling 
-
-```
-python dt.py -h
-python kdt.py -h
-```
-
-shows some help on how to use these applications. Further, pydstk provides two supplementary
-applications `dtdist.py` and `kdtdist.py` that enable to compute a similarity measure between
-two DT/KDT models. This can be usefull for recognition experiments for instance. The 
-applications are also a good starting point to get familiar with the API. 
-
-To get started, pydstk contains some example videos under `tests/data/`, such as `ultrasound.avi`
-or `data1.txt`. These videos are rather small and are also used during unit testing. In case
-of `data1.txt`, it is worth taking a closer look at the header of this ASCII file, since it 
-identifies the video dimensions (here 48x48x48 pixel).
-
-We will use the file `ultasound.avi` in this example. Is represents an Ultrasound (US) video 
-(64x64 pixel) x 40 frames that was acquired on an Ultrasound phantom. We first estimate a DT
-model with 5 states as follows:
+**Estimating a dynamic texture model (DT)**
+- DT states: 5
+- Input data: video file `tests/ultrasound.avi`
+- Output data: DT model file `/tmp/us-dt-model.pkl`
 
 ```bash
-python dt.py -i tests/data/ultrasound.avi -n 5 -t vFile -e -o /tmp/us-dt-model.pkl
+$ python dt.py -i tests/data/ultrasound.avi \ 
+               -n 5 \
+               -t vFile \
+               -e \ 
+               -o /tmp/us-dt-model.pkl
 ```
-
-This write a file `/tmp/us-dt-model.pkl` using Python's pickle functionality. In case we want to 
-synthesize the video from the model and show the synthesis result, we can use
+**Estimate and synthesize a video from a DT model**
+- DT states: 5
+- Input data: video file `tests/data/ultrasound.avi`
+- Output data: `/tmp/us-dt-model.pkl`
+- Frame rate: 20 FPS
 
 ```bash
-python dt.py -i tests/data/ultrasound.avi -n 5 -t vFile -e -s -o /tmp/us-dt-model.pkl -m 20
+$ python dt.py -i tests/data/ultrasound.avi \
+               -n 5 \
+               -t vFile \
+               -e \
+               -s \
+               -o /tmp/us-dt-model.pkl \
+               -m 20
 ```
+**Estimating a kernel dynamic texture model (KDT)**
+- KDT states: 5
+- Input data: video file `tests/data/ultrasound.avi`
+- Output data: `/tmp/us-kdt-model.pkl`
+- Kernel: RBF (default)
 
-which shows the synthesis result (at 20 FPS). Similar to that, we can estimate a 
-KDT model with 5 states using a RBF kernel as follows:
-
+```bash
+$ python kdt.py -i tests/data/ultrasound.avi -n 5 -t vFile -o /tmp/us-kdt-model.pkl
 ```
-python kdt.py -i tests/data/ultrasound.avi -n 5 -t vFile -o /tmp/us-kdt-model.pkl
-```
-
-**Note**: We do not support synthesis for KDT models at that point!. After we 
-have estimated either DT or KDT models for our videos, we can measure similarity
-between these models using the example applications `dtdist.py` and `kdtdist.py`
-which rely on the **Martin distance**. For simplicity, we will measure the Martin
-distance between a model and itself (which should be 0 of course). In the case 
-of DT's, this can be done as follows:
+**Similarity Measurement between two DT models**
+- Source model: `/tmp/us-dt-model.pkl`
+- Reference model: `/tmp/us-dt-model.pkl`
+- Nr. of summation terms (for Lyapunov eq.): 50
 
 ```bash
 python dtdist.py -s /tmp/us-dt-model.pkl /tmp/us-dt-model.pkl -n 50
 ```
-
-Similar to that, we use
+**Similarity Measurement between two KDT models**
+- Source model: `/tmp/us-kdt-model.pkl`
+- Reference model: `/tmp/us-kdt-model.pkl`
+- Nr. of summation terms (for Lyapunov eq.): 50
 
 ```bash
 python kdtdist.py -s /tmp/us-kdt-model.pkl -r /tmp/us-kdt-model.pkl -n 50
 ````
 
-in case of the KDT models. In both cases `-s` specifies the *source* model
-and `-r` specifies the reference model. Note that the Martin distance is not
-symmetric! The parameter `-n ARG` sets the number of summation terms that we
-use to solve the discrete Lyapunov equation that appears in the formulation
-of the Martin distance (see references).
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ---
 ```
 Author: Roland Kwitt
 E-Mail: roland.kwitt@kitware.com
+Personal website: http://rkwitt.org
 ```
