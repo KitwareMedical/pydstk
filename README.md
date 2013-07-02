@@ -61,11 +61,18 @@ Similarity measurement between two linear dynamical systems by means of subspace
   year =  2007}
 ```
 
-
-Supported I/O File Formats
+Supported I/O file formats
 --------------------------
 The package `dsutil` contains a set of I/O routines to load data from harddisk (tbd.)
 
+
+Running unit-tests
+------------------
+Unit-testing in pydstk is done using `nose`. All tests reside in the `tests` directory. To run, for instance, 
+the tests for `systems.py` module, use:
+```bash
+$ nosetests tests/test_system.py -v
+```
 
 Some example applications
 -------------------------
