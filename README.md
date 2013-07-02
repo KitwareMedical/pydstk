@@ -1,4 +1,4 @@
-pyds
-====
+pydstk
+======
 
-Python Dynamical Systems
+Python Dynamical Systems Toolkit
