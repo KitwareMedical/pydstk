@@ -28,10 +28,12 @@
 import sys
 import time
 import json
+import pickle
 import numpy as np
 
 import dsutil.dsutil as dsutil
 import dsutil.dsinfo as dsinfo
+import dscore.dsdist as dsdist
 
 from dsutil.dsutil import Timer
 from dscore.system import LinearDS
@@ -42,35 +44,31 @@ from dscore.system import OnlineLinearDS
 def loadDB(f):
     """Load database of templates.
     """
+    return json.load(open(f))        
     
-    models, labels = [], []
-    dbinfo = json.load(open(sys.argv[1]))
-    for entry in dbinfo["data"]:
-        models.append(pickle.load(open(entry["model"])))
-        labels.append(entry["label"])
-        
-
+    
 if __name__ == '__main__':
     
     (vid, size) = dsutil.loadDataFromVideoFile(sys.argv[1])
-    #dsutil.showMovie(vid, size, fps=20)
-    print vid.shape
+    dbinfo = loadDB(sys.argv[2])
     
-    #models, labels = loadDB(sys.argv[1])
+    db = []
+    for entry in dbinfo['data']:
+        db.append({ 'model' : pickle.load(open(entry['model'])), 
+                    'label' : int(entry["label"]) })
     
-    # video loading
-    #Y, _ = dsutil.loadDataFromASCIIFile(sys.argv[1])
-    #T = Y.shape[1]
+    dsinfo.info("loaded %d template model(s)!" % len(db))
 
-    # create an online LDS
-    #odt = OnlineLinearDS(nStates=3, bufLen=10, nShift=1, approx=False, verbose=True)
+    # create online DS with 5 states, no-skipping
+    odt = OnlineLinearDS(5, 40, 2, False, False)
     
-    #for f in range(Y.shape[1]):
-    #    odt.update(Y[:,f])
-    #    
-    #    d = [] 
-    #    for tpl in models:
-    #        d.append(dsdist.ldsMartinDistance(tpl, win, 20))
-        
-    #    p = np.argmin(np.asarray(d))
-    #    print labels[p]
+    t0 = time.clock()
+
+    for f in range(vid.shape[1]):
+        odt.update(vid[:,f])
+        if odt.check():
+            for dbentry in db:
+                md = dsdist.ldsMartinDistance(odt, dbentry['model'], 20)            
+    
+    t1 = time.clock()
+    print 'processing time : %.2g [sec]' % (t1-t0)
