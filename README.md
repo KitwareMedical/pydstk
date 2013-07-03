@@ -13,6 +13,8 @@ Requirements
 2. [**scipy**](http://www.scipy.org)
 3. [**OpenCV**](http://opencv.willowgarage.com/wiki/) (Python wrapping, tested with v2.4.5)
 4. [**SimpleITK**](http://www.simpleitk.org) (Python wrapping)
+5. [**nose**](https://nose.readthedocs.org/en/latest/)
+6. [**termcolor**](https://pypi.python.org/pypi/termcolor)
 
 To check if those packages are available on your system, try
 ```python
