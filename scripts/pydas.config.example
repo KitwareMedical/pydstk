@@ -1,0 +1,5 @@
+{
+    "email"   : "<YourMIDASLogin>",
+    "api_key" : "<YourMIDASAPIKey>",
+    "url"     : "http://midas3.kitware.com/midas"
+}
