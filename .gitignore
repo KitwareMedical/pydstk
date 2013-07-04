@@ -1,5 +1,4 @@
 scripts/pydas.config
 *.pyc
-generate.sh
 data/
 .DS_Store
