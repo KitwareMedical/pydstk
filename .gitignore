@@ -1,1 +1,4 @@
 *.pyc
+generate.sh
+data/
+.DS_Store
