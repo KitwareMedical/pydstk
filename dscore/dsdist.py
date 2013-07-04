@@ -79,7 +79,7 @@ def nldsIP(nlds1, nlds2):
         A2n = copy.copy(A2)
         A1n -= np.tile(np.mean(A1, axis=0),(N1, 1))
         A2n -= np.tile(np.mean(A2, axis=0),(N2, 1))
-    
+  
     # copy kernel params of nlds1 and enforce NO centering/scaling
     kPar = copy.copy(nlds1._kpcaParams._kPar)
     kPar._kCen = False
@@ -91,9 +91,9 @@ def nldsIP(nlds1, nlds2):
     
     sig1s = np.sqrt(nlds1._kpcaParams._kPar._sig2)
     sig2s = np.sqrt(nlds2._kpcaParams._kPar._sig2)
-    
+        
     # inner-product (in feature space) between Gaussian kernels (updates kPar)
-    nlds1._kpcaParams._kFun(Y1/sig1s, Y2/sig1s, kPar)
+    nlds1._kpcaParams._kFun(Y1/sig1s, Y2/sig2s, kPar)
     F = np.asmatrix(A1).T*kPar._kMat*A2
     return F
     

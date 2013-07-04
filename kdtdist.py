@@ -63,6 +63,7 @@ OPTIONS (Overview):
 
     -s ARG -- KDT1 model file
     -r ARG -- KDT2 model file
+    [-n ARG] -- Iterations for solving Lyapunov eq. (default: 20)    
         
 AUTHOR: Roland Kwitt, Kitware Inc., 2013
         roland.kwitt@kitware.com
