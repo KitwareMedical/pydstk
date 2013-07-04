@@ -489,6 +489,12 @@ class OnlineNonLinearDS(NonLinearDS):
             
         self._nShift = nShift
         self._cnt = nShift - 1
+   
+   
+    def hasChanged(self):
+        """Did the DS change ?
+        """
+        return self._cnt == self._nShift    
         
         
     def update(self, x):
@@ -548,7 +554,13 @@ class OnlineLinearDS(LinearDS):
             
         self._nShift = nShift
         self._cnt = nShift - 1
-            
+       
+       
+    def hasChanged(self):
+        """Did the DS change ?
+        """
+        return self._cnt == self._nShift     
+
             
     def update(self, x):
         """Update LDS model (i.e., re-estimate if required)

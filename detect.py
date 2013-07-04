@@ -22,12 +22,11 @@
 ################################################################################
 
 
-"""Template detector.
-"""
-
+import os
 import sys
 import time
 import json
+import glob
 import pickle
 import numpy as np
 from optparse import OptionParser
@@ -55,89 +54,179 @@ USAGE:
 
 OPTIONS (Overview):
 
-    -s ARG -- Source video file (AVI)
-    -d ARG -- JSON database file
-    -t ARG -- DS type ('dt', 'kdt') 
-    [-n ARG] -- #DS states (int, default=5)
-    [-w ARG] -- Sliding window size (int, default=20)
-    [-s ARG] -- Sliding window shift (int, default=2)
-    [-i ARG] -- Lyapunov solver iterations (int, default=20)
-    [-v] -- Verbose output
+    -s ARG -- Source video file (only AVI videos are supported!)
+    -d ARG -- Database file in JSON format
+    -c ARG -- Config file in JSON format
+    -v ARG -- Base directory of template videos
+    -m ARG -- Base directory of template models
+    [-o ARG] -- Write distance matrix to file
+    [-x] -- Verbose output
 
-NOTE: See 'db.example.json' for an example database file!
-        
 AUTHOR: Roland Kwitt, Kitware Inc., 2013
         roland.kwitt@kitware.com
 """.format(sys.argv[0]))
     sys.exit(-1)
 
-       
+
+def loadDB(videoDir, modelDir, dbFile):
+    """Load database information.
+    
+    Parameters
+    ----------
+    videoDir : string
+        Base directory where the videos reside.
+    modelDir: string
+        Base directory where the models reside.
+    dbFile: string
+        Filename of the database file in JOSN format.
+
+    Returns
+    -------
+    db : list
+        List of N dictionaries with keys:
+            "video" -- Name of DS file
+            "label" -- Name of corresponding AVI video file
+            "model" -- Loaded DS model
+    winSize : int 
+        Length (#frames) of the templates
+    nStates : int
+        Number of DS models for templates
+    dynType : string
+        DS type (result of type(...))
+    """
+    
+    dbinfo = json.load(open(dbFile))
+    
+    db, labels = [], []
+    winSize = set() 
+    nStates = set()
+    dynType = set()
+    
+    for entry in dbinfo:
+        tplEntry = entry["ks"] # Key sequence name
+        labEntry = entry["cl"] # Class label of key sequence
+        
+        res = glob.glob(os.path.join(videoDir, '%s*.avi' % tplEntry))
+        for entry in res:
+            videoFile = os.path.basename(entry)
+            modelFile = os.path.splitext(videoFile)[0]+".pkl"
+            modelFile = os.path.join(modelDir, modelFile)
+                                     
+            if not os.path.exists(modelFile):                         
+                dsinfo.fail("%s does not exist!" % modelFile)
+                raise Exception()
+                                     
+            db.append({ "model" : pickle.load(open(modelFile)),
+                        "video" : videoFile,
+                        "label" : labEntry })                     
+            winSize.add(db[-1]["model"]._Xhat.shape[1])
+            nStates.add(db[-1]["model"]._nStates)
+            dynType.add(type(db[-1]["model"]))
+      
+    if not (len(winSize) == 1 and len(nStates) == 1 and len(dynType) == 1):
+        dsinfo.fail("Incompatible template configuration!")
+        raise Exception()
+    
+    return (db, 
+            iter(winSize).next(), # common sliding window size
+            iter(nStates).next(), # common number of DS states
+            iter(dynType).next()) # common DS type
+   
+          
 def main(argv=None):
     if argv is None: 
         argv = sys.argv
 
     parser = OptionParser(add_help_option=False)
 
-    # input video, database, dynamical system type
     parser.add_option("-s", dest="inFile")
     parser.add_option("-d", dest="dbFile") 
-    parser.add_option("-t", dest="dsType")
-    
-    # DS states, sliding window size and sliding window shift
-    parser.add_option("-n", dest="nStates", type="int", default=5)
-    parser.add_option("-w", dest="winSize", type="int", default=40)
-    parser.add_option("-m", dest="shiftMe", type="int", default=2)
-
-    # iterations for solving Lyapunov equation
-    parser.add_option("-i", dest="numIter", type="int", default=20)
+    parser.add_option("-m", dest="models")
+    parser.add_option("-v", dest="videos")
+    parser.add_option("-c", dest="config")
+    parser.add_option("-o", dest="mdFile")
 
     parser.add_option("-h", dest="doUsage", action="store_true", default=False)
-    parser.add_option("-v", dest="verbose", action="store_true", default=False) 
+    parser.add_option("-x", dest="verbose", action="store_true", default=False) 
     options, args = parser.parse_args()
     
     if options.doUsage: 
         usage()
+
+    # read config file
+    config = json.load(open(options.config))
     
-    nStates = options.nStates
-    winSize = options.winSize
-    shiftMe = options.shiftMe
-    nStates = options.nStates
+    # get DS config settings
+    dynType = config["dynType"]
+    shiftMe = config["shiftMe"]
+    numIter = config["numIter"]
+
     verbose = options.verbose
-    numIter = options.numIter
     
-    #TODO: sanity checks
+    # I/O configuration
+    inFile = options.inFile
+    dbFile = options.dbFile
+    models = options.models
+    videos = options.videos
+    mdFile = options.mdFile
     
-    (vid, size) = dsutil.loadDataFromVideoFile(options.inFile)
-    dbinfo = json.load(open(options.dbFile))
+    # check if the required options are present
+    if (inFile is None or dbFile is None or
+        models is None or videos is None):
+        dsinfo.warn('Options missing!')
+        usage()
     
-    db = []
-    for entry in dbinfo['data']:
-        db.append({ 'model' : pickle.load(open(entry['model'])), 
-                    'label' : int(entry["label"]) })
+    inVideo, inVideoSize = dsutil.loadDataFromVideoFile(inFile)
+    if verbose:
+        dsinfo.info("Loaded source video with %d frames!" % inVideo.shape[1])
     
-    if options.dsType == 'dt':
+    (db, winSize, nStates, dynType) = loadDB(videos, models, dbFile)
+    
+    if verbose:
+        dsinfo.info("#Templates: %d #States: %d, WinSize: %d, Shift: %d" % 
+                     (len(db), nStates, winSize, shiftMe))
+    
+    if dynType.__name__ == "LinearDS":
+        # create online version of LinearDS
         ds = OnlineLinearDS(nStates, winSize, shiftMe, False, verbose)
-    elif options.dsType == 'kdt':
+    elif dynType.__name__ == "NonLinearDS":
         kpcaP = KPCAParam()
-        kpcaP._kPar = RBFParam()
-        kpcaP._kPar._kCen = True
-        kpcaP._kFun = rbfK
+       
+        # select kernel
+        if config["kdtKern"] == "rbf":
+            kpcaP._kPar = RBFParam()
+            kpcaP._kFun = rbfK
+        else:
+            dsinfo.fail("Kernel %s not supported!" % kdtKern)
+            return -1
+        
+        # configure kernel
+        if config["kCenter"] == 1:
+            kpcaP._kPar._kCen = True
+        else:
+            kpcaP._kPar._kCen = False
+            
+        # create online version of KDT
         ds = OnlineNonLinearDS(nStates, kpcaP, winSize, shiftMe, verbose)
     else:
-        dsinfo.fail('DS type %s not supported!' % options.dsType)        
+        dsinfo.fail('System type %s not supported!' % options.dsType)        
         return -1
 
     dList = []
-    for f in range(vid.shape[1]):
-        ds.update(vid[:,f])
-        if ds.check():
-            dists = np.zeros((len(db), 1))
+    for f in range(inVideo.shape[1]):
+        ds.update(inVideo[:,f])
+        if ds.check() and ds.hasChanged():
+            dists = np.zeros((len(db),))
             for j, dbentry in enumerate(db):
-                dists[j] = { 'dt' : dsdist.ldsMartinDistance,
-                             'kdt': dsdist.nldsMartinDistance
-                }[options.dsType](ds, dbentry['model'], numIter)
-                dList.append(dists)
-                               
+                dists[j] = { "LinearDS" : dsdist.ldsMartinDistance,
+                             "NonLinearDS": dsdist.nldsMartinDistance
+                }[dynType.__name__](ds, dbentry["model"], numIter)
+            dList.append(dists)
+    
+    # write distance matrix
+    if not mdFile is None:
+        np.savetxt(mdFile, np.asmatrix(dList), fmt='%.5f', delimiter=' ')
+    
     
 if __name__ == '__main__':
     sys.exit(main())    
