@@ -21,8 +21,10 @@
 #
 ################################################################################
 
+
 """Contains the core dynamical system implementations.
 """
+
 
 __license__ = "Apache License, Version 2.0"
 __author__  = "Roland Kwitt, Kitware Inc., 2013"
@@ -452,74 +454,119 @@ class LinearDS(object):
         err += np.sum(np.abs(lds2._Yavg.ravel() - lds1._Yavg.ravel()))                        
         return (lds, err)
 
+
+class OnlineNonLinearDS(NonLinearDS):
+    """Online version of non-linear DS (for real-time use).
+    """
+
+    def __init__(self, nStates, kpcaParam, bufLen, nShift=1, verbose=False):
+        """ Initialization.
         
-class OnlineLinearDS(LinearDS):
-        """Online version of a linear DS (for real-time use).
+        Parameters:
+        -----------
+        nStates : int
+            Number of NLDS states.
+            
+        kpcaParam: instance of KPCAParam
+            KPCA parameters.
+        
+        bufLen : int
+            Length of circular buffer to hold data vectors.
+            
+        nShift : int (default : 1)
+            Shift window by N vectors forward.
+            
+        verbose : boolean (default : False)
+            Verbose output.
+        """
+    
+        if nShift == 0:
+            raise ErrorDS('nShift == 0!')
+        NonLinearDS.__init__(self, nStates, kpcaParam, verbose)
+        
+        self._buf = deque(maxlen = bufLen)
+        [self._buf.append(None) for i in range(bufLen)]
+            
+        self._nShift = nShift
+        self._cnt = nShift - 1
+        
+        
+    def update(self, x):
+        """Update NLDS model (i.e., re-estimate if required)
+        
+        Parameters:
+        -----------
+        x : numpy.array, shape = (N, )
+            New data vector.
         """
         
-        def __init__(self, nStates, bufLen, nShift=1, approx=False, verbose=False):
-            """ Initialization.
+        self._buf.append(x)
             
-            Parameters:
-            -----------
-            nStates : int
-                Number of LDS states.
-            
-            bufLen : int
-                Length of circular buffer to hold data vectors.
-            
-            nShift : int (default : 1)
-                Shift window by N vectors forward.
-            
-            approx : boolean (default : False)
-                Use randomized SVD.
-            
-            verbose : boolean (default : False)
-                Verbose output.
-            """
-            
-            if nShift == 0:
-                raise ErrorDS('nShift == 0!')
-                
-            # call base class init
-            LinearDS.__init__(self, nStates, approx, verbose)
-            
-            # initialize buffer and fill with None's
-            self._buf = deque(maxlen = bufLen)
-            [self._buf.append(None) for i in range(bufLen)]
-            
-            self._nShift = nShift
-            self._cnt = nShift - 1
-            
-            
-        def update(self, x):
-            """Update DS model (i.e., re-estimate if required)
-            
-            Parameters:
-            -----------
-            x : numpy.array, shape = (N, )
-                New data vector.
-            """
-            
-            self._buf.append(x)
-            
-            # rampup time ... do nothin
-            if self._buf.count(None) > 0:
-                return
+        if self._buf.count(None) > 0:
+            return
+        self._cnt -= 1
         
-            self._cnt -= 1
+        if self._cnt == 0 or self._nShift == 1:
+            self.suboptimalSysID(np.asarray(self._buf).T)
+            self._cnt = self._nShift
         
-            if self._cnt == 0 or self._nShift == 1:
-                self.suboptimalSysID(np.asarray(self._buf).T)
-                self._cnt = self._nShift
+
+class OnlineLinearDS(LinearDS):
+    """Online version of a linear DS (for real-time use).
+    """
+    
+    def __init__(self, nStates, bufLen, nShift=1, approx=False, verbose=False):
+        """ Initialization.
         
+        Parameters:
+        -----------
+        nStates : int
+            Number of LDS states.
+            
+        bufLen : int
+            Length of circular buffer to hold data vectors.
+            
+        nShift : int (default : 1)
+            Shift window by N vectors forward.
+            
+        approx : boolean (default : False)
+            Use randomized SVD.
+            
+        verbose : boolean (default : False)
+            Verbose output.
+        """
+            
+        if nShift == 0:
+            raise ErrorDS('nShift == 0!')
+                
+        # call base class init
+        LinearDS.__init__(self, nStates, approx, verbose)
+            
+        # initialize buffer and fill with None's
+        self._buf = deque(maxlen = bufLen)
+        [self._buf.append(None) for i in range(bufLen)]
+            
+        self._nShift = nShift
+        self._cnt = nShift - 1
             
             
-                
-                
-                
-                
-                
-                
-                
-                
+    def update(self, x):
+        """Update LDS model (i.e., re-estimate if required)
+        
+        Parameters:
+        -----------
+        x : numpy.array, shape = (N, )
+            New data vector.
+        """
+            
+        self._buf.append(x)
+            
+        # rampup time ... do nothin
+        if self._buf.count(None) > 0:
+            return
+        
+        self._cnt -= 1
+        
+        if self._cnt == 0 or self._nShift == 1:
+            self.suboptimalSysID(np.asarray(self._buf).T)
+            self._cnt = self._nShift
