@@ -77,7 +77,7 @@ Type
 import dsutil.dsutil as dsutil
 help(dsutil.loadDataFromASCIIFile)
 ```
-in a Pytghon console to get more information about the format of the input file(s) and 
+in a Python console to get more information about the format of the input file(s) and 
 the function parameters (here for function `loadDataFromASCIIFile`).
 
 Running the unit-tests

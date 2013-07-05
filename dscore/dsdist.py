@@ -133,7 +133,7 @@ def nldsMartinDistance(nlds1, nlds2, N=20):
     
     Returns:
     --------
-    D : np.float32
+    D : float
         Martin distance between nlds1 and nlds2.
     """
     
@@ -207,7 +207,7 @@ def ldsMartinDistance(lds1, lds2, N=20):
     
     Returns:
     --------
-    D : np.float32
+    D : float
         Martin distance between lds1 and lds2.
     """
     
