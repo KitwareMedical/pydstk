@@ -21,6 +21,7 @@ To check if those packages are available on your system, try
 import cv2
 import scipy
 import numpy
+import termcolor
 import SimpleITK
 ```
 in a Python console. If no error occurs, you are all set! 
@@ -65,15 +66,65 @@ Similarity measurement between two linear dynamical systems by means of subspace
 
 Supported I/O file formats
 --------------------------
-The package `dsutil` contains a set of I/O routines to load data from harddisk (tbd.)
+The package `dsutil` contains a set of I/O routines to load data from harddisk. Three
+common ways of loading video data are: 
+- load an actual video file (via `loadDataFromVideoFIle`)
+- load a video represented as a collection of frames (via `loadDataFromIListFile`)
+- load a video as a large data matrix (via `loadDataFromASCIIFile`)
 
+Type
+```python
+import dsutil.dsutil as dsutil
+help(dsutil.loadDataFromASCIIFile)
+```
+in a Pytghon console to get more information about the format of the input file(s) and 
+the function parameters (here for function `loadDataFromASCIIFile`).
 
-Running unit-tests
-------------------
+Running the unit-tests
+----------------------
 Unit-testing in pydstk is done using `nose`. All tests reside in the `tests` directory. To run, for instance, 
 the tests for `systems.py` module, use:
 ```bash
 $ nosetests tests/test_system.py -v
+```
+
+Where can I get data material ?
+-------------------------------
+Several resources for getting dynamic texture data can be found on the internet. An extensive database of dynamic texture is available in the [**Dyntex**](http://projects.cwi.nl/dyntex/) 
+created by *R. Peteri et al.* Another interesting set of videos (e.g., for recognition experiments) is the [**Traffic**](http://www.svcl.ucsd.edu/projects/traffic/) database created
+by *A. Chan and N. Vasconcelos* that was used in
+
+```bibtex
+@inproceedings{Chan05a,
+  author = {A.~B.~Chan and N.~Vasconcelos},
+  title = {Probabilistic Kernels for the Classification of Auto-regressive Visual Processes},
+  booktitle = {CVPR},
+  year = {2005}}
+```
+
+Another dataset, from the field of medical Ultrasound imaging is available from [**MIDAS**](http://midas3.kitware.com/midas/folder/10255).
+This dataset contains a collection of Ultrasound videos acquired on a (hand-made) phantom. The videos (in AVI format) are split into *key* videos and *search*
+videos and can be used to experiment with approaches that try to recognize the *key* videos in the *search* videos for instance. 
+The `scripts` directory of `pydstk` contains a `download.py` script that can automatically download this database. You only need 
+to adjust the file `scripts/pydas.config.example` to your MIDAS account settings. This database was used in
+
+```bibtex
+@article{Kwitt13b,
+  author = {R. Kwitt and N. Vasconcelos and S. Razzaque and S. Aylward},
+  title = {Localizing Target Structures in Ultrasound Video - A Phantom Study},
+  journal = {Medical Image Analysis},
+  volume ={17},
+  number = {7},
+  pages = {712-722},
+  year = 2013}
+```
+and
+```bibtex
+@inproceedings{Kwitt12d,
+  author = {R. Kwitt and N. Vasconcelos and S. Razzaque and S. Alyward},
+  title = {Recognition in Ultrasound Videos: Where Am I?},
+  booktitle = {MICCAI},
+  year = 2012}
 ```
 
 Some example applications
@@ -115,7 +166,7 @@ $ python dt.py -i tests/data/ultrasound.avi \
 ```bash
 $ python kdt.py -i tests/data/ultrasound.avi -n 5 -t vFile -o /tmp/us-kdt-model.pkl
 ```
-**Similarity Measurement between two DT models**
+**Similarity measurement between two DT models**
 - Source model: `/tmp/us-dt-model.pkl`
 - Reference model: `/tmp/us-dt-model.pkl`
 - Nr. of summation terms (for Lyapunov eq.): 50
@@ -123,7 +174,7 @@ $ python kdt.py -i tests/data/ultrasound.avi -n 5 -t vFile -o /tmp/us-kdt-model.
 ```bash
 python dtdist.py -s /tmp/us-dt-model.pkl /tmp/us-dt-model.pkl -n 50
 ```
-**Similarity Measurement between two KDT models**
+**Similarity measurement between two KDT models**
 - Source model: `/tmp/us-kdt-model.pkl`
 - Reference model: `/tmp/us-kdt-model.pkl`
 - Nr. of summation terms (for Lyapunov eq.): 50
@@ -131,7 +182,8 @@ python dtdist.py -s /tmp/us-dt-model.pkl /tmp/us-dt-model.pkl -n 50
 ```bash
 python kdtdist.py -s /tmp/us-kdt-model.pkl -r /tmp/us-kdt-model.pkl -n 50
 ````
-
+**Online template detection in videos**
+tbd.
 ---
 ```
 Author: Roland Kwitt
