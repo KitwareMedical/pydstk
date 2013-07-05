@@ -183,7 +183,8 @@ python dtdist.py -s /tmp/us-dt-model.pkl /tmp/us-dt-model.pkl -n 50
 python kdtdist.py -s /tmp/us-kdt-model.pkl -r /tmp/us-kdt-model.pkl -n 50
 ````
 **Online template detection in videos**
-tbd.
+- coming soon!
+
 ---
 ```
 Author: Roland Kwitt
