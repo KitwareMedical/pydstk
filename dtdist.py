@@ -92,11 +92,8 @@ def main(argv=None):
     with open(opt.model2File, 'r') as fid:
         dt2 = pickle.load(fid)
 
-    t0 = time.clock()
     martinD = dsdist.ldsMartinDistance(dt1, dt2, opt.iterations)
-    t1 = time.clock()
     dsinfo.info('D(%s,%s) = %.4f' % (opt.model1File, opt.model2File, martinD))
-    print "%.2g [sec]" % (t1-t0)
         
             
 if __name__ == '__main__':

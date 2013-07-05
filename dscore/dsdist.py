@@ -33,6 +33,7 @@ __email__   = "E-Mail: roland.kwitt@kitware.com"
 __status__  = "Development"
 
 
+import time
 import copy
 import pickle
 import numpy as np
@@ -218,7 +219,7 @@ def ldsMartinDistance(lds1, lds2, N=20):
     C2 = lds2._Chat
     A1 = lds1._Ahat
     A2 = lds2._Ahat
-    
+   
     C1C1 = np.asmatrix(C1).T*C1
     C2C2 = np.asmatrix(C2).T*C2
     C1C2 = np.asmatrix(C1).T*C2
@@ -229,7 +230,7 @@ def ldsMartinDistance(lds1, lds2, N=20):
     # matrices that are used for the GEP
     K = np.zeros((dx1+dx2, dx1+dx2))
     L = np.zeros((dx1+dx2, dx1+dx2))
-    
+
     # N summation terms
     for i in range(N+1):
         if i == 0:

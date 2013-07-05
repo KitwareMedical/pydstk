@@ -92,7 +92,7 @@ def loadDB(videoDir, modelDir, dbFile):
     nStates : int
         Number of DS models for templates
     dynType : string
-        DS type (result of type(...))
+        DS type (i.e., the result of type(...))
     """
     
     dbinfo = json.load(open(dbFile))
