@@ -39,6 +39,7 @@ import numpy as np
 from collections import deque
 from termcolor import colored
 from sklearn.utils.extmath import randomized_svd
+from scipy.linalg import eig
 
 # import pyds package contents
 import dsutil.dsinfo as dsinfo
@@ -226,9 +227,173 @@ class LinearDS(object):
         if self._nStates < 0:
             raise ErrorDS("#states < 0!")
 
-        self._ready = False
+        self._ready = False    
+    
+    
+    @staticmethod
+    def computeRJF(A):
+        """Computes real Jordan form (RCF) of matrix.
+        
+        Parameters:
+        -----------
+        A : np.array, shape = (N, N)
+            Input matrix (e.g., state matrix)
+    
+        Returns:
+        --------
+        J : np.ndarray, shape = (N, N)
+            A in real Jordan form.
+            
+        Q : np.ndarray, shape = (N, N)
+            Similarity transform, s.t., J = inv(Q)*A*Q
+        
+        X : np.ndarray, shape = (N, )
+            Indicator array for real/imag. parts
+        
+        Note: This function is based on A. Ravichandran's MATLAB function 
+        realJordanForm.m (part of the Dynamic Texture Toolbox), available 
+        from:
+    
+        http://cis.jhu.edu/~avinash/projects/DTBox
+        
+        
+        (Be carefull with that function, since it's generally advised
+        to avoid numerical Jordan form computations in practice due to 
+        stability reasons.)
+        
+        Algorithmic strategy:
+        ---------------------
+        
+        The strategy is to first compute the eigenvalues and eigenvectors
+        of A; then impose an ordering of the eigenvalues (by sorting the 
+        imaginary parts in ascending order); next, we find the real eigen-
+        values and sort them in descending order; finally, the eigenvalues
+        are arranged as Jordan blocks in the matrix J and the eigenvectors 
+        are arranged in the similarity transform matrix Q.
+        """    
+        
+        if not A.shape[0] == A.shape[1]:
+            raise ErrorDS("Input matrix not square!")
+        
+        N = A.shape[1]
+        eVals, eVecs = eig(A)
+         
+        # sort by imaginary part
+        idx = np.argsort(np.abs(np.imag(eVals)))
+        P = eVals[idx]
+        V = eVecs[:,idx]
+        
+        # get real parts and rearrange
+        iR = np.isreal(P).astype(int)
+        realP = P[np.where(iR==1)[0]]
+        realV = V[:, np.where(iR==1)[0]]
+        
+        idx = np.argsort(realP)[::-1]
+        P[0:len(idx)] = realP[idx]
+        V[:,0:len(idx)] = realV[:,idx]
+        iR[0:len(idx)] = iR[idx]
+    
+        # build matrices
+        J = np.zeros((N, N)) 
+        Q = np.zeros((N, N)) 
+        X = np.zeros((N,))
+        
+        cnt = 0
+        while cnt < N:
+            if iR[cnt] == 1:
+                Q[:,cnt] = np.real(V[:,cnt])/np.real(V[0,cnt])
+                J[cnt,cnt] = np.real(P[cnt])
+                X[cnt] = 1
+                cnt += 1
+            else:
+                Q[:,cnt] = np.real(V[:,cnt])
+                Q[:,cnt+1] = np.imag(V[:,cnt])
+                
+                B = np.asarray([ [+np.real(P[cnt]), +np.imag(P[cnt])],
+                                 [-np.imag(P[cnt]), +np.real(P[cnt])]])
+                J[cnt:cnt+2,cnt:cnt+2] = B
+                X[cnt], X[cnt+1] = 1, 0
+                cnt += 2
+        return (J, np.linalg.inv(Q), X)
+        
+        
+    @staticmethod
+    def computeJCFTransform(A,C):
+        """Compute transform to convert LDS into Jordan Canonical Form (JCF).
+
+        Parameters:
+        -----------
+        A : np.ndarray, shape = (N, N)
+            Input state transition matrix.
+        
+        C : np.ndarray, shape = (D, N)
+            Input observation matrix.
+        
+        Returns:
+        --------
+        P : np.ndarray, shape = (N, N)
+            Transform to convert the LDS, represented by (A, C)
+            into JCF (Ac, Cc), s.t.
+            
+            (Ac, Cc) = (P*A*inv(P), g^T*C*inv(P)),
+            
+            where g = [1,1,....,1] is C.shape[0] vector of all 
+            '1', i.e., g^T*C is the column-wise sum of C; this  
+            is required, since the JCF is defined only for one 
+            output!
+        
+        The algorithm is based on A. Ravinchandran's MATLAB function
+        convertToCanonicalForm.m, part of the Dynamic Texture Toolbox
+        available from:
+        
+        http://cis.jhu.edu/~avinash/projects/DTBox
+        
+        Mathematical details on how to obtain the transform to convert
+        a LDS into JCF can be found in the PAMI article
+        
+        A. Ravinchandran and R. Vidal., "Video Registration Using
+        Dynamic Textures", PAMI 33(1), Jan. 2011
+        """
+        
+        if not A.shape[0] == A.shape[1]:
+            raise ErrorDS("A matrix not square!")
+            
+        if not A.shape[0] == C.shape[1]:
+            raise ErrorDS("(A,C) not compatible!")
+
+        N = A.shape[0]
+        I = np.identity(N)
+        (J, Q, Cc) = LinearDS.computeRJF(A)
+        
+        M = np.kron(I, J) + np.kron(-A.T, I)
+        T = np.kron(I, Cc)
+        a = np.vstack((M, T))
+        
+        colSumC = np.sum(C, axis=0)
+        x = np.zeros(N**2+len(colSumC),)
+        x[-N:] = colSumC
+    
+        P = (np.linalg.pinv(a)*np.asmatrix(x).T).reshape((5,5),order='F')
+        return P
         
     
+    def convertToJCF(self):
+        """Converts the LDS to JCF.
+        """
+        
+        if not self.check():
+            raise ErrorDS("System not ready for conversion to JCF!")
+        
+        P = self.computeJCFTransform(self._Ahat, self._Chat)
+                
+        self._ChatJCF = self._Chat*np.linalg.inv(P)
+        self._AhatJCF = P*self._Ahat*np.linalg.inv(P)
+        self._XhatJCF = P*self._Xhat
+        self._initM0JCF = P*self._initM0
+        
+        #TODO: Transform the remaining parameters (required for synthesis)!
+        
+                    
     def check(self):
         """Check validity of LDS parameters.
      

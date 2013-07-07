@@ -62,6 +62,21 @@ class Timer(object):
         dsinfo.time(str)
 
 
+def orth(A):
+    """Orthogonalization."""
+    
+    U,S,_ = np.linalg.svd(A, full_matrices=False)
+    m,n = A.shape
+    if m > 1:
+        pass
+    elif m == 1:
+        S = S(1)
+    else:
+        S = 0
+    tol = np.max((m,n))*np.max(S)*np.spacing(1)
+    return U[:,0:len(np.where(S > tol)[0])]
+    
+
 def renormalize(data, (newmin, newmax), oldrange=None):
     """Normalize data into requested range.
     
