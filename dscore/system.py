@@ -277,7 +277,7 @@ class LinearDS(object):
         
         N = A.shape[1]
         eVals, eVecs = eig(A)
-         
+        
         # sort by imaginary part
         idx = np.argsort(np.abs(np.imag(eVals)))
         P = eVals[idx]
@@ -309,8 +309,8 @@ class LinearDS(object):
                 Q[:,cnt] = np.real(V[:,cnt])
                 Q[:,cnt+1] = np.imag(V[:,cnt])
                 
-                B = np.asarray([ [+np.real(P[cnt]), +np.imag(P[cnt])],
-                                 [-np.imag(P[cnt]), +np.real(P[cnt])]])
+                B = np.asarray([[+np.real(P[cnt]), +np.imag(P[cnt])],
+                                [-np.imag(P[cnt]), +np.real(P[cnt])]])
                 J[cnt:cnt+2,cnt:cnt+2] = B
                 X[cnt], X[cnt+1] = 1, 0
                 cnt += 2
