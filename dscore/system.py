@@ -38,12 +38,18 @@ import pickle
 import numpy as np
 from collections import deque
 from termcolor import colored
-from sklearn.utils.extmath import randomized_svd
+
 from scipy.linalg import eig
+from sklearn.manifold import MDS
+from sklearn.cluster import KMeans
+from sklearn.utils.extmath import randomized_svd
+from sklearn.metrics.pairwise import euclidean_distances
+
 
 # import pyds package contents
 import dsutil.dsinfo as dsinfo
 import dsutil.dsutil as dsutil
+import dscore.dsdist as dsdist
 
 # import pyds classes
 from dsutil.dsutil import Timer
@@ -179,7 +185,7 @@ class NonLinearDS(object):
         self._initM0 = initM0
         self._initS0 = initS0
         
-        
+                
 class LinearDS(object):
     """Implements a linear dynamical system (LDS) of the form:
     
@@ -315,7 +321,62 @@ class LinearDS(object):
                 X[cnt], X[cnt+1] = 1, 0
                 cnt += 2
         return (J, np.linalg.inv(Q), X)
+       
+       
+    @staticmethod
+    def cluster(ldsList, k=3, verbose=False):
+        """Cluster LDS's via Multi-Dimensional Scaling and KMeans.
         
+        Strategy:
+            1. Build NxN matrix of pairwise similarities
+            2. Run MDS to embed data in R^2
+            3. Run KMeans with k cluster centers
+            4. Find samples closest to the k centers
+    
+        Paramters:
+        ----------
+        ldsList: list of LinearDS objects
+            List of input LDS
+    
+        k: int (default: 3)
+            Number of desired cluster centers.
+        
+        Returns:
+        --------
+        ids: list, length = k
+            List of indices into ldsList identifying the k representatives.
+        """   
+        
+        nLDS = len(ldsList)
+        
+        D = np.zeros((nLDS, nLDS))
+        for i, A in enumerate(ldsList):
+            for j, B in enumerate(ldsList):
+                D[i,j] = dsdist.ldsMartinDistance(A, B)
+    
+        # build MDS for precomputed similarity matrix
+        mds = MDS(metric=True, n_components=2, verbose=True, 
+                  dissimilarity="precomputed")
+   
+        def __symmetrize(A):
+            return A + A.T - np.diag(A.diagonal())     
+
+        # run MDS on symmetrized similarity matrix
+        eData = mds.fit(__symmetrize(D)).embedding_
+        
+        kmObj = KMeans(k)
+        kmObj.fit_predict(eData)
+       
+        ids = np.zeros((k,))
+        for i in range(k):
+            cDat = eData[np.where(kmObj.labels_ == i)[0],:]
+            kCen = kmObj.cluster_centers_[i,:]
+            
+            assert len(cDat) > 0, "Oops, empty cluster ..."        
+            x = euclidean_distances(cDat, kCen).ravel()
+            ids[i] = np.argsort(x)[0]
+        return ids
+
         
     @staticmethod
     def computeJCFTransform(A,C):

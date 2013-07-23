@@ -240,7 +240,7 @@ def loadDataFromASCIIFile(inFile):
     dataMat = np.genfromtxt(inFile, dtype=np.float32, skip_header=1)    
     return (dataMat, dataSiz)
     
-    
+   
 def loadDataFromVolumeFile(inFile):
     """Load a volumetric image as a video.
     """
