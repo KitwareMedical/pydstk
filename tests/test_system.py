@@ -40,6 +40,7 @@ from dscore.system import LinearDS
 from dsutil.dsutil import loadDataFromASCIIFile, orth
 from dscore.system import NonLinearDS
 from dscore.dskpca import KPCAParam, rbfK, RBFParam
+from dscore.dsdist import ldsMartinDistance
 
 
 TESTBASE = os.path.dirname(__file__) 
@@ -75,11 +76,11 @@ def test_LinearDS_suboptimalSysID():
      
     lds = LinearDS(5, False, False)
     lds.suboptimalSysID(data)
-     
+   
     baseLDSFile = os.path.join(TESTBASE, "data/data1-dt-5c-center.pkl")
     baseLDS = pickle.load(open(baseLDSFile))
      
-    _, err = LinearDS.stateSpaceMap(baseLDS, lds)
+    err = ldsMartinDistance(lds, baseLDS, N=20)
     np.testing.assert_almost_equal(err, 0, 5)
 
 
