@@ -40,7 +40,7 @@ from dscore.system import LinearDS
 from dsutil.dsutil import loadDataFromASCIIFile, orth
 from dscore.system import NonLinearDS
 from dscore.dskpca import KPCAParam, rbfK, RBFParam
-from dscore.dsdist import ldsMartinDistance
+from dscore.dsdist import ldsMartinDistance, nldsMartinDistance
 
 
 TESTBASE = os.path.dirname(__file__) 
@@ -169,7 +169,77 @@ def test_convertToJCF():
         np.testing.assert_almost_equal(errC, 0, 5)
     
     
+def test_ldsMartinDistance():
+    """Test Martin distance computation for LDS's (5 states).
+    
+    Config: 5 states (observation centering - default).
+    """
+    
+    fileA = os.path.join(TESTBASE, "data/data1.txt")
+    fileB = os.path.join(TESTBASE, "data/data2.txt")
+
+    # load data files
+    dataA, _ = loadDataFromASCIIFile(fileA)    
+    dataB, _ = loadDataFromASCIIFile(fileB)
+     
+    ldsA = LinearDS(5, False, False)
+    ldsB = LinearDS(5, False, False)
+    
+    # estimate LDS's
+    ldsA.suboptimalSysID(dataA)
+    ldsB.suboptimalSysID(dataB)
+    
+    # compute distances A<->A, A<->B
+    dAA = ldsMartinDistance(ldsA, ldsA, 20)
+    dAB = ldsMartinDistance(ldsA, ldsB, 20)
+    
+    truth = np.genfromtxt("data/ldsMartinDistanceData1Data2.txt")
+    np.testing.assert_almost_equal(dAB, truth, 5)    
+    np.testing.assert_almost_equal(dAA, 0, 5)
+    
+    
+def test_nldsMartinDistance():
+    """Test Martin distance computation for NLDS's.
+    
+    Config: 5 states, kernel centering
+    """
+    
+    fileA = os.path.join(TESTBASE, "data/data1.txt")
+    fileB = os.path.join(TESTBASE, "data/data2.txt")
+
+    # load data files
+    dataA, _ = loadDataFromASCIIFile(fileA)    
+    dataB, _ = loadDataFromASCIIFile(fileB)
+
+    # configure kernels
+    kpcaPA = KPCAParam()
+    kpcaPA._kPar = RBFParam()
+    kpcaPA._kPar._kCen = True
+    kpcaPA._kFun = rbfK
+
+    kpcaPB = KPCAParam()
+    kpcaPB._kPar = RBFParam()
+    kpcaPB._kPar._kCen = True
+    kpcaPB._kFun = rbfK
+
+    nldsA = NonLinearDS(5, kpcaPA, False)
+    nldsB = NonLinearDS(5, kpcaPB, False)
+    
+    # estimate NLDS's
+    nldsA.suboptimalSysID(dataA)
+    nldsB.suboptimalSysID(dataB)
+
+    # compute distances A<->A, A<->B
+    dAA = nldsMartinDistance(nldsA, nldsA, 20)
+    dAB = nldsMartinDistance(nldsA, nldsB, 20)
+    
+    truth = np.genfromtxt("data/nldsMartinDistanceData1Data2.txt" )
+    np.testing.assert_almost_equal(dAA, 0, 5)
+    np.testing.assert_almost_equal(dAB, truth, 5)
+
+    
 if __name__ == "__main__":
+    test_nldsMartinDistance()
     pass
     
 
