@@ -80,7 +80,7 @@ def test_LinearDS_suboptimalSysID():
     baseLDS = pickle.load(open(baseLDSFile))
      
     _, err = LinearDS.stateSpaceMap(baseLDS, lds)
-    assert np.allclose(err, 0.0) == True
+    np.testing.assert_almost_equal(err, 0, 5)
 
 
 def test_NonLinearDS_suboptimalSysID(): 
@@ -129,7 +129,7 @@ def test_computeRJF_part1():
     ref = np.asarray([[3,0,0],
                       [0,2,0],
                       [0,0,2]])
-    np.testing.assert_almost_equal(np.linalg.norm(J-ref,'fro'), 0)
+    np.testing.assert_almost_equal(np.linalg.norm(J-ref,'fro'), 0, 5)
 
 
 def test_convertToJCF():
