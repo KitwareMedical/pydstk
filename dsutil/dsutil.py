@@ -241,6 +241,23 @@ def loadDataFromASCIIFile(inFile):
     return (dataMat, dataSiz)
     
     
+def loadDataFromVolumeFile(inFile):
+    """Load a volumetric image as a video.
+    """
+    
+    import SimpleITK as sitk
+    data = sitk.GetArrayFromImage(sitk.ReadImage(inFile))
+
+    zDim = data.shape[0]
+    xDim = data.shape[1]
+    yDim = data.shape[2]
+    
+    if not (xDim == yDim):
+        raise ErrorDS("spatial dimensions of video ")
+
+    return data.reshape((zDim,xDim*yDim)).T    
+
+    
 def loadDataFromIListFile(inFile):
     """Read list of image files into a data matrix.
     
