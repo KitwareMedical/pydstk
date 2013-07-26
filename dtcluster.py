@@ -116,8 +116,11 @@ def main(argv=None):
     
     #write list of DT representatives
     oList = []
-    for id in ids:
-        oList.append(iList[id])
+    for j, dtFile in enumerate(iList):
+            if j in ids:
+                oList.append(dtFile)
+            else:
+                oList.append("Dummy")
     pickle.dump(oList, open(oListFile, "w"))
 
     if verbose:

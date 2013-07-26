@@ -193,7 +193,7 @@ def test_ldsMartinDistance():
     dAA = ldsMartinDistance(ldsA, ldsA, 20)
     dAB = ldsMartinDistance(ldsA, ldsB, 20)
     
-    truth = np.genfromtxt("data/ldsMartinDistanceData1Data2.txt")
+    truth = np.genfromtxt(os.path.join(TESTBASE, "data/ldsMartinDistanceData1Data2.txt"))
     np.testing.assert_almost_equal(dAB, truth, 5)    
     np.testing.assert_almost_equal(dAA, 0, 5)
     
@@ -233,7 +233,7 @@ def test_nldsMartinDistance():
     dAA = nldsMartinDistance(nldsA, nldsA, 20)
     dAB = nldsMartinDistance(nldsA, nldsB, 20)
     
-    truth = np.genfromtxt("data/nldsMartinDistanceData1Data2.txt" )
+    truth = np.genfromtxt(os.path.join(TESTBASE, "data/nldsMartinDistanceData1Data2.txt" ))
     np.testing.assert_almost_equal(dAA, 0, 5)
     np.testing.assert_almost_equal(dAB, truth, 5)
 
