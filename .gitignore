@@ -1,4 +1,3 @@
 scripts/pydas.config
 *.pyc
-data/
 .DS_Store
