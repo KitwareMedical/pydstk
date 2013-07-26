@@ -343,7 +343,7 @@ class LinearDS(object):
         
         Returns:
         --------
-        ids: list, length = k
+        ids: np.ndarray, shape = (k,)
             List of indices into ldsList identifying the k representatives.
         """   
         
@@ -366,15 +366,16 @@ class LinearDS(object):
         
         kmObj = KMeans(k)
         kmObj.fit_predict(eData)
-       
-        ids = np.zeros((k,))
+              
+        ids = np.zeros((k,), dtype=np.int)
         for i in range(k):
+            # sanity check
             cDat = eData[np.where(kmObj.labels_ == i)[0],:]
-            kCen = kmObj.cluster_centers_[i,:]
-            
             assert len(cDat) > 0, "Oops, empty cluster ..."        
-            x = euclidean_distances(cDat, kCen).ravel()
-            ids[i] = np.argsort(x)[0]
+
+            kCen = kmObj.cluster_centers_[i,:]
+            x = euclidean_distances(eData, kCen)
+            ids[i] = int(np.argsort(x.ravel())[0])
         return ids
 
         

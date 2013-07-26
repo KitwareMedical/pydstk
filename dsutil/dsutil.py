@@ -254,8 +254,7 @@ def loadDataFromVolumeFile(inFile):
     
     if not (xDim == yDim):
         raise ErrorDS("spatial dimensions of video ")
-
-    return data.reshape((zDim,xDim*yDim)).T    
+    return (data.reshape((zDim,xDim*yDim)).T, (xDim, yDim, zDim))
 
     
 def loadDataFromIListFile(inFile):

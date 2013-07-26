@@ -64,6 +64,7 @@ OPTIONS (Overview):
         'vFile' - AVI video file
         'aFile' - ASCII data file
         'lFile' - Image list file 
+        'mFile' - Volumetric (.mha) file
         
     [-n ARG] -- LDS states (default: 5)
     [-o ARG] -- Save DT parameters -> ARG 
@@ -110,6 +111,8 @@ def main(argv=None):
             (dataMat, dataSiz) = dsutil.loadDataFromASCIIFile(opt.iFile)
         elif opt.iType == 'lFile':
             (dataMat, dataSiz) = dsutil.loadDataFromIListFile(opt.iFile)
+        elif opt.iType == 'mFile':
+            (dataMat, dataSiz) = dsutil.loadDataFromVolumeFile(opt.iFile)
         else:
             msg.fail("Unsupported file type : %s", opt.iType)    
             return -1
