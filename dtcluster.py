@@ -60,11 +60,15 @@ USAGE:
 
 OPTIONS (Overview):
 
-    -i ARG -- Input file (list of pickled DT's)
+    -i ARG -- Input file (list of N pickled DT's)
     -k ARG -- Number of K cluster centers
     -b ARG -- Base directory of input DT's
-    -o ARG -- Output list of K represenatives
-
+    -o ARG -- (Pickled) Output list of length N
+    
+    NOTE: The output list contains N entries, where only those 
+    entries which were identified as representatives contain 
+    original input DT filenames and "Dummy" otherwise.
+        
     [-v] -- Verbose output (default: False)
     
 AUTHOR: Roland Kwitt, Kitware Inc., 2013
