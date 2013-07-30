@@ -324,7 +324,7 @@ class LinearDS(object):
        
        
     @staticmethod
-    def cluster(ldsList, k=3, verbose=False):
+    def cluster(D, k=3, verbose=False):
         """Cluster LDS's via Multi-Dimensional Scaling and KMeans.
         
         Strategy:
@@ -335,25 +335,26 @@ class LinearDS(object):
     
         Paramters:
         ----------
-        ldsList: list of LinearDS objects
-            List of input LDS
-    
+        D: numpy.ndarray, shape = (N, N)
+            Precomputed distance matrix.
+
         k: int (default: 3)
             Number of desired cluster centers.
         
+        verbose: boolean
+            Enable verbose output.
+        
         Returns:
         --------
-        ids: np.ndarray, shape = (k,)
-            List of indices into ldsList identifying the k representatives.
-        """   
+        eData: numpy.ndarray, shape (N, k)
+            N d-dimensional samples embedded in R^d.
         
-        nLDS = len(ldsList)
+        ids: numpy.ndarray, shape = (k,)
+            List of indices identifying the k representatives.
+        """
         
-        D = np.zeros((nLDS, nLDS))
-        for i, A in enumerate(ldsList):
-            for j, B in enumerate(ldsList):
-                D[i,j] = dsdist.ldsMartinDistance(A, B)
-    
+        assert D.shape[0] == D.shape[1], "OOps (distance matrix not square)!"
+                
         # build MDS for precomputed similarity matrix
         mds = MDS(metric=True, n_components=2, verbose=True, 
                   dissimilarity="precomputed")
@@ -376,7 +377,9 @@ class LinearDS(object):
             kCen = kmObj.cluster_centers_[i,:]
             x = euclidean_distances(eData, kCen)
             ids[i] = int(np.argsort(x.ravel())[0])
-        return ids
+        
+        # return distance matrix and ID's of representative LDS's
+        return (eData, ids)
 
         
     @staticmethod

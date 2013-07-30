@@ -37,6 +37,7 @@ import dsutil.dsutil as dsutil
 import dsutil.dsinfo as dsinfo
 
 from dscore.system import LinearDS
+from dscore.dsdist import ldsMartinDistance
 
 
 """Application #3: Dynamic Texture Clustering
@@ -64,11 +65,12 @@ OPTIONS (Overview):
     -k ARG -- Number of K cluster centers
     -b ARG -- Base directory of input DT's
     -o ARG -- (Pickled) Output list of length N
-    
+        
     NOTE: The output list contains N entries, where only those 
     entries which were identified as representatives contain 
     original input DT filenames and "Dummy" otherwise.
-        
+    
+    [-d ARG] -- Already available distance matrix    
     [-v] -- Verbose output (default: False)
     
 AUTHOR: Roland Kwitt, Kitware Inc., 2013
@@ -84,6 +86,7 @@ def main(argv=None):
     parser = OptionParser(add_help_option=False)
     parser.add_option("-i", dest="iListFile") 
     parser.add_option("-o", dest="oListFile")
+    parser.add_option("-d", dest="dMatFile")
     parser.add_option("-b", dest="iBase")
     parser.add_option("-k", dest="kCenter", type="int", default=5)
     parser.add_option("-h", dest="shoHelp", action="store_true", default=False)
@@ -94,6 +97,7 @@ def main(argv=None):
         usage()
     
     iBase = options.iBase
+    dMatFile = options.dMatFile
     iListFile = options.iListFile
     oListFile = options.oListFile
     kCenter = options.kCenter
@@ -111,11 +115,27 @@ def main(argv=None):
     for dtFile in iList:
         dts.append(pickle.load(open(os.path.join(iBase, dtFile))))
     
-    # run clustering
     if verbose:
         dsinfo.info("Running DT clustering with %d clusters ..." % kCenter)
     
-    ids = LinearDS.cluster(dts, kCenter, verbose)
+    D = None
+    if not dMatFile is None:
+        if os.path.exists(dMatFile):    
+            if verbose:
+                dsinfo.info("Try loading distance matrix %s!" % dMatFile)
+            D = pickle.load(open(dMatFile))
+
+    if D is None:
+        if verbose:
+            dsinfo.info("Computing pairwise distances ...")
+        nDTs = len(dts)
+        D = np.zeros((nDTs, nDTs))
+        for i in range(nDTs):
+            for j in range(nDTs):
+                D[i,j] = ldsMartinDistance(dts[i], dts[j], 50)
+    
+    # run clustering
+    (eData, ids) = LinearDS.cluster(D, kCenter, verbose)
     ids = list(ids)
     
     #write list of DT representatives
@@ -130,6 +150,11 @@ def main(argv=None):
     if verbose:
         dsinfo.info("Wrote list of representative DS's to %s!" % oListFile)
 
+    if not dMatFile is None:
+        if verbose:
+            dsinfo.info("Writing distance matrix to %s!" % dMatFile)
+        pickle.dump(D, open(dMatFile, "w"))
+        
 
 if __name__ == "__main__":
     sys.exit(main())
