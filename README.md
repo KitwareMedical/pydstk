@@ -17,12 +17,14 @@ Requirements
 4. [**SimpleITK**](http://www.simpleitk.org) (Python wrapping)
 5. [**nose**](https://nose.readthedocs.org/en/latest/)
 6. [**termcolor**](https://pypi.python.org/pypi/termcolor)
+7. [**scikit-learn**](http://scikit-learn.org/stable/)
 
 To check if those packages are available on your system, try
 ```python
 import cv2
 import scipy
 import numpy
+import sklearn
 import termcolor
 import SimpleITK
 ```
