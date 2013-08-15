@@ -88,3 +88,9 @@ def test_kpca():
     err = np.linalg.norm(np.abs(baseKPCACoeff)-np.abs(X), 'fro')
     np.testing.assert_almost_equal(err, 0, 4)
     
+    
+if __name__ == "__main__":
+    test_kpca()    
+    
+    
+    
