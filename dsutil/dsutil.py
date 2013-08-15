@@ -63,7 +63,18 @@ class Timer(object):
 
 
 def orth(A):
-    """Orthogonalization."""
+    """Creates an orthonormal basis for the range of the input matrix.
+    
+    Parameters
+    ----------
+    A : numpy.ndarray, shape (N, D)
+        Input matrix.
+    
+    Returns
+    -------
+    Q : numpy.ndarray, shape (N, E)
+        Orthonormal basis for range(A), i.e., Q'Q = I; E = rank(Q)
+    """
     
     U,S,_ = np.linalg.svd(A, full_matrices=False)
     m,n = A.shape
@@ -74,7 +85,8 @@ def orth(A):
     else:
         S = 0
     tol = np.max((m,n))*np.max(S)*np.spacing(1)
-    return U[:,0:len(np.where(S > tol)[0])]
+    Q = U[:,0:len(np.where(S > tol)[0])]
+    return Q
     
 
 def renormalize(data, (newmin, newmax), oldrange=None):
@@ -243,6 +255,24 @@ def loadDataFromASCIIFile(inFile):
    
 def loadDataFromVolumeFile(inFile):
     """Load a volumetric image as a video.
+    
+    Reads a volumetric image and creates a video, where the z-axis is defined
+    as the time-axis. 
+    
+    Note: The spatial dimensions have to be equal!
+    
+    Paramters
+    ---------
+    inFile : string
+        Filename of input image (e.g., test.mha)
+    
+    Returns
+    -------   
+    dataMat : numpy.ndarray, shape = (N, #images)
+        Output data matrix, where N = (width x height)
+    
+    dataSiz : tuple of (height, width, #images)    
+      The video dimensions.
     """
     
     import SimpleITK as sitk
@@ -254,7 +284,10 @@ def loadDataFromVolumeFile(inFile):
     
     if not (xDim == yDim):
         raise ErrorDS("spatial dimensions of video ")
-    return (data.reshape((zDim,xDim*yDim)).T, (xDim, yDim, zDim))
+        
+    dataMat = data.reshape((zDim,xDim*yDim)).T
+    dataSiz = (xDim, yDim, zDim)
+    return (dataMat, dataSiz)
 
     
 def loadDataFromIListFile(inFile):
