@@ -261,8 +261,6 @@ def kpca(Y, k, params):
     params._A = kpcaObj.alphas_[:,0:k]
     params._l = kpcaObj.lambdas_[0:k]
 
-    print params._l
-
     if np.any(np.where(kpcaObj.lambdas_ <= 0)[0]):
         dsinfo.warn("some unselected eigenvalues are negative!")
     if np.any(np.where(params._l < 0)[0]):

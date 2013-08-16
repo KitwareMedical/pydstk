@@ -51,7 +51,7 @@ def test_rbfK_centered():
     kernel = np.genfromtxt(kernelFile, dtype=np.double)
 
     err = np.linalg.norm(kernel - par._kMat, 'fro')
-    np.testing.assert_almost_equal(err, 0, 4)
+    np.testing.assert_almost_equal(err, 0, 2)
 
 
 def test_rbfK_noncentered():
@@ -67,7 +67,7 @@ def test_rbfK_noncentered():
     kernel = np.genfromtxt(kernelFile, dtype=np.double)
 
     err = np.linalg.norm(kernel - par._kMat, 'fro')
-    np.testing.assert_almost_equal(err, 0, 4)
+    np.testing.assert_almost_equal(err, 0, 2)
 
 
 def test_kpca():
@@ -86,8 +86,7 @@ def test_kpca():
 
     # don't care about the sign
     err = np.linalg.norm(np.abs(baseKPCACoeff)-np.abs(X), 'fro')
-    print "Error: %.10f" % err
-    np.testing.assert_almost_equal(err, 0, 4)
+    np.testing.assert_almost_equal(err, 0, 2)
 
 
 if __name__ == "__main__":
