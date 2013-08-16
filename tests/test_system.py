@@ -67,49 +67,49 @@ def test_NonLinearDS_check():
     assert nlds.check() is False
 
 
-def test_LinearDS_suboptimalSysID(): 
+def test_LinearDS_suboptimalSysID():
     """Test LinearDS system identification.
     """
-    
+
     dataFile = os.path.join(TESTBASE, "data/data1.txt")
     data, _ = loadDataFromASCIIFile(dataFile)
-     
+
     lds = LinearDS(5, False, False)
     lds.suboptimalSysID(data)
-   
+
     baseLDSFile = os.path.join(TESTBASE, "data/data1-dt-5c-center.pkl")
     baseLDS = pickle.load(open(baseLDSFile))
-     
+
     err = ldsMartinDistance(lds, baseLDS, N=20)
     np.testing.assert_almost_equal(err, 0, 5)
 
 
-def test_NonLinearDS_suboptimalSysID(): 
+def test_NonLinearDS_suboptimalSysID():
     """Test NonLinearDS system identification.
     """
 
     dataFile = os.path.join(TESTBASE, "data/data1.txt")
     data, _ = loadDataFromASCIIFile(dataFile)
-    
+
     kpcaP = KPCAParam()
     kpcaP._kPar = RBFParam()
     kpcaP._kPar._kCen = True
     kpcaP._kFun = rbfK
-         
+
     nlds = NonLinearDS(5, kpcaP, False)
     nlds.suboptimalSysID(data)
 
     baseNLDSFile = os.path.join(TESTBASE, "data/data1-rbf-kdt-5c-center.pkl")
     baseNLDS = pickle.load(open(baseNLDSFile))
-    
+
     err = NonLinearDS.naiveCompare(baseNLDS, nlds)
-    assert np.allclose(err, 0.0) == True
-    
-    
+    np.testing.assert_almost_equal(err, 0, 5)
+
+
 def test_computeRJF_part0():
     """Test computeRJF() with random 3x3 ... 10x10 matrices.
     """
-    
+
     np.random.seed(1234)
     for d in range(3,10):
         A = np.random.random((d,d))
@@ -224,7 +224,7 @@ def test_nldsMartinDistance():
 
     nldsA = NonLinearDS(5, kpcaPA, False)
     nldsB = NonLinearDS(5, kpcaPB, False)
-    
+
     # estimate NLDS's
     nldsA.suboptimalSysID(dataA)
     nldsB.suboptimalSysID(dataB)
@@ -232,25 +232,13 @@ def test_nldsMartinDistance():
     # compute distances A<->A, A<->B
     dAA = nldsMartinDistance(nldsA, nldsA, 20)
     dAB = nldsMartinDistance(nldsA, nldsB, 20)
-    
-    truth = np.genfromtxt(os.path.join(TESTBASE, "data/nldsMartinDistanceData1Data2.txt" ))
+
+    truth = np.genfromtxt(os.path.join(TESTBASE,
+      "data/nldsMartinDistanceData1Data2.txt" ))
     np.testing.assert_almost_equal(dAA, 0, 5)
     np.testing.assert_almost_equal(dAB, truth, 5)
 
-    
+
 if __name__ == "__main__":
-    test_nldsMartinDistance()
+    test_NonLinearDS_suboptimalSysID()
     pass
-    
-
-
-
-
-
-
-
-
-    
-    
-    
-    
