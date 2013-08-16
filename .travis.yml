@@ -13,4 +13,4 @@ install:
   - pip install -q scikit-learn termcolor
   - easy_install -q SimpleITK
 
-script: nosetests -v
+script: nosetests --nocapture -v
